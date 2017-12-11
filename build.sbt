@@ -1,5 +1,5 @@
-lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
-//lazy val root = (project in file(".")).settings(
+//lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
+lazy val root = (project in file(".")).settings(
   inThisBuild(List(
     scalaVersion := "2.12.4",
     version := "0.1.0"
@@ -7,9 +7,9 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala).settings(
   name := "domala-handson",
   libraryDependencies ++= Seq(
     "com.h2database" % "h2" % "1.4.196"
-    , guice
-    , jdbc
-    , evolutions
+    // , guice
+    // , jdbc
+    // , evolutions
   )
 ) dependsOn repository aggregate repository
 
