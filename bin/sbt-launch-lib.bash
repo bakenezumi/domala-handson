@@ -12,9 +12,21 @@ declare -a scalac_args
 declare -a sbt_commands
 declare java_cmd=java
 declare java_version
-declare -r sbt_bin_dir="$(dirname "$(realpath "$0")")"
+declare init_sbt_version="1.0.4"
+
+declare SCRIPT=$0
+while [ -h "$SCRIPT" ] ; do
+  ls=$(ls -ld "$SCRIPT")
+  # Drop everything prior to ->
+  link=$(expr "$ls" : '.*-> \(.*\)$')
+  if expr "$link" : '/.*' > /dev/null; then
+    SCRIPT="$link"
+  else
+    SCRIPT=$(dirname "$SCRIPT")/"$link"
+  fi
+done
+declare -r sbt_bin_dir="$(dirname "$SCRIPT")"
 declare -r sbt_home="$(dirname "$sbt_bin_dir")"
-declare init_sbt_version=
 
 echoerr () {
   echo 1>&2 "$@"
@@ -105,6 +117,21 @@ get_mem_opts () {
   fi
 }
 
+get_gc_opts () {
+  local older_than_9="$(expr $java_version "<" 9)"
+
+  if [[ "$older_than_9" == "1" ]]; then
+    # don't need to worry about gc
+    echo ""
+  elif [[ "${JAVA_OPTS}" =~ Use.*GC ]] || [[ "${JAVA_TOOL_OPTIONS}" =~ Use.*GC ]] || [[ "${SBT_OPTS}" =~ Use.*GC ]] ; then
+    # GC arg has been passed in - don't change
+    echo ""
+  else
+    # Java 9+ so revert to old
+    echo "-XX:+UseParallelGC"
+  fi
+}
+
 require_arg () {
   local type="$1"
   local opt="$2"
@@ -145,7 +172,7 @@ process_args () {
               *) addResidual "$1" && shift ;;
     esac
   done
-  
+
   is_function_defined process_my_args && {
     myargs=("${residual_args[@]}")
     residual_args=()
@@ -153,11 +180,15 @@ process_args () {
   }
 
   ## parses 1.7, 1.8, 9, etc out of java version "1.8.0_91"
-  java_version=$("$java_cmd" -Xmx512M -version 2>&1 | sed 's/.*version "\([0-9]*\)\(\.[0-9]*\)\{0,1\}\(.*\)*"/\1\2/; 1q')
+  java_version=$("$java_cmd" -Xmx512M -version 2>&1 | grep ' version "' | sed 's/.*version "\([0-9]*\)\(\.[0-9]*\)\{0,1\}\(.*\)*"/\1\2/; 1q')
   vlog "[process_args] java_version = '$java_version'"
 }
 
 syncPreloaded() {
+  if [[ "$init_sbt_version" == "" ]]; then
+    # FIXME: better $init_sbt_version detection
+    init_sbt_version="$(ls -1 "$sbt_home/lib/local-preloaded/org.scala-sbt/sbt/")"
+  fi
   [[ -f "$HOME/.sbt/preloaded/org.scala-sbt/sbt/$init_sbt_version/jars/sbt.jar" ]] || {
     # lib/local-preloaded exists (This is optional)
     [[ -d "$sbt_home/lib/local-preloaded/" ]] && {
@@ -173,30 +204,32 @@ syncPreloaded() {
 checkJava() {
   local required_version="$1"
   # Now check to see if it's a good enough version
+  local good_enough="$(expr $java_version ">=" $required_version)"
   if [[ "$java_version" == "" ]]; then
     echo
-    echo No java installations was detected.
-    echo Please go to http://www.java.com/getjava/ and download
+    echo "No Java Development Kit (JDK) installation was detected."
+    echo Please go to http://www.oracle.com/technetwork/java/javase/downloads/ and download.
     echo
     exit 1
-  elif [[ "$java_version" < "$required_version" ]]; then
+  elif [[ "$good_enough" != "1" ]]; then
     echo
-    echo The java installation you have is not up to date
+    echo "The Java Development Kit (JDK) installation you have is not up to date."
     echo $script_name requires at least version $required_version+, you have
     echo version $java_version
     echo
-    echo Please go to http://www.java.com/getjava/ and download
-    echo a valid Java Runtime and install before running $script_name.
+    echo Please go to http://www.oracle.com/technetwork/java/javase/downloads/ and download
+    echo a valid JDK and install before running $script_name.
     echo
     exit 1
   fi
 }
 
 copyRt() {
-  if [[ "$java_version" > "8" ]]; then
+  local at_least_9="$(expr $java_version ">=" 9)"
+  if [[ "$at_least_9" == "1" ]]; then
     rtexport=$(rt_export_file)
     java9_ext=$("$java_cmd" ${JAVA_OPTS} ${SBT_OPTS:-$default_sbt_opts} ${java_args[@]} \
-      -jar "$rtexport" --rt-ext-dir)
+      -jar "$rtexport" --rt-ext-dir | grep -v Listening)
     java9_rt=$(echo "$java9_ext/rt.jar")
     vlog "[copyRt] java9_rt = '$java9_rt'"
     if [[ ! -f "$java9_rt" ]]; then
@@ -244,13 +277,14 @@ run() {
   # run sbt
   execRunner "$java_cmd" \
     $(get_mem_opts $sbt_mem) \
+    $(get_gc_opts) \
     ${JAVA_OPTS} \
     ${SBT_OPTS:-$default_sbt_opts} \
     ${java_args[@]} \
     -jar "$sbt_jar" \
     "${sbt_commands[@]}" \
-    "${residual_args[@]}"  
-  
+    "${residual_args[@]}"
+
   exit_code=$?
 
   # Clean up the terminal from cygwin hacks.

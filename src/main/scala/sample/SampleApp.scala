@@ -24,5 +24,5 @@ object SampleApp extends App {
 | $$  | $$|  $$$$$$$| $$  | $$|  $$$$$$$ /$$$$$$$/      |  $$$$$$/| $$  | $$
 |__/  |__/ \_______/|__/  |__/ \_______/|_______/        \______/ |__/  |__/
  """)
- println("Domala hands-on Setup is complete")
+ println("Domala hands-on Setup is complete.")
 }

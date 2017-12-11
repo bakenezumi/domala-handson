@@ -1,12 +1,12 @@
 @REM SBT launcher script
-@REM 
+@REM
 @REM Environment:
 @REM JAVA_HOME - location of a JDK home dir (mandatory)
 @REM SBT_OPTS  - JVM options (optional)
 @REM Configuration:
 @REM sbtconfig.txt found in the SBT_HOME.
 
-@REM   ZOMG! We need delayed expansion to build up CFG_OPTS later 
+@REM   ZOMG! We need delayed expansion to build up CFG_OPTS later
 @setlocal enabledelayedexpansion
 
 @echo off
@@ -52,6 +52,8 @@ if "%_JAVACMD%"=="" set _JAVACMD=java
 rem We use the value of the JAVA_OPTS environment variable if defined, rather than the config.
 set _JAVA_OPTS=%JAVA_OPTS%
 if "%_JAVA_OPTS%"=="" set _JAVA_OPTS=%CFG_OPTS%
+
+set INIT_SBT_VERSION="1.0.4"
 
 :args_loop
 if "%~1" == "" goto args_end
@@ -116,12 +118,12 @@ if /I "%JAVA_VERSION%" GEQ "%required_version%" (
   exit /B 0
 )
 echo.
-echo The java installation you have is not up to date
+echo The Java Development Kit (JDK) installation you have is not up to date.
 echo sbt requires at least version %required_version%+, you have
 echo version %JAVA_VERSION%
 echo.
-echo Please go to http://www.java.com/getjava/ and download
-echo a valid Java Runtime and install before running sbt.
+echo Please go to http://www.oracle.com/technetwork/java/javase/downloads/ and download
+echo a valid JDK and install before running sbt.
 echo.
 exit /B 1
 
@@ -139,19 +141,32 @@ if /I "%JAVA_VERSION%" GEQ "9" (
     "%_JAVACMD%" %_JAVA_OPTS% %SBT_OPTS% -jar "%rtexport%" "%java9_rt%"
   )
   set _JAVA_OPTS=!_JAVA_OPTS! -Dscala.ext.dirs="%java9_ext%"
+
+  rem check to see if a GC has been set in the opts
+  echo !_JAVA_OPTS! | findstr /r "Use.*GC" >nul
+  if ERRORLEVEL 1 (
+    rem don't have a GC set - revert to old GC
+    set _JAVA_OPTS=!_JAVA_OPTS! -XX:+UseParallelGC
+  )
 )
 exit /B 0
 
 :sync_preloaded
+if "%INIT_SBT_VERSION%"=="" (
+  rem FIXME: better %INIT_SBT_VERSION% detection
+  FOR /F "tokens=* USEBACKQ" %%F IN (`dir /b "%SBT_HOME%\..\lib\local-preloaded\org.scala-sbt\sbt" /B`) DO (
+    SET INIT_SBT_VERSION=%%F
+  )
+)
 set PRELOAD_SBT_JAR="%UserProfile%\.sbt\preloaded\org.scala-sbt\sbt\%INIT_SBT_VERSION%\jars\sbt.jar"
-if /I "%JAVA_VERSION%" GEQ "8" (
+if /I "%JAVA_VERSION%" GEQ "1.8" (
   where robocopy >nul 2>nul
   if %ERRORLEVEL% equ 0 (
     echo %PRELOAD_SBT_JAR%
     if not exist %PRELOAD_SBT_JAR% (
       if exist "%SBT_HOME%\..\lib\local-preloaded\" (
         echo 'about to robocopy'
-        robocopy "%SBT_HOME%\..\lib\local-preloaded\" "%UserProfile%\.sbt\preloaded"
+        robocopy "%SBT_HOME%\..\lib\local-preloaded" "%UserProfile%\.sbt\preloaded" /E
       )
     )
   )
