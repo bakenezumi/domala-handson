@@ -1,0 +1,8 @@
+# Set the java args to high
+-Xmx2048M
+-XX:ReservedCodeCacheSize=128m
+
+
+# Set the extra SBT options
+-Dsbt.log.format=true
+
