@@ -27,7 +27,6 @@ trait EmpDao {
       id int not null primary key,
       name varchar(20),
       age int,
-      sex char(1),
       version int not null
   );
 

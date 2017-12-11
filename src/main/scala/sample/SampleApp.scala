@@ -11,8 +11,8 @@ object SampleApp extends App {
     // create table & insert
     dao.create()
     val inserted = Seq(
-      Emp(ID(-1), Name("scott"), Age(10), Sex.Male, -1),
-      Emp(ID(-1), Name("allen"), Age(20), Sex.Female, -1)
+      Emp(ID(-1), Name("scott"), Age(10), -1),
+      Emp(ID(-1), Name("allen"), Age(20), -1)
     ).map(dao.insert)
     println(inserted)
 
