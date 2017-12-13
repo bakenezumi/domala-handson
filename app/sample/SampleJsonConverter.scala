@@ -28,7 +28,7 @@ object EmpConverter {
   }}
 
   implicit def writesEmp = Json.writes[Emp]
-  implicit def readsEmp = Json.reads[Emp]
+  implicit def readsEmp = Json.using[Json.WithDefaultValues].format[Emp]
 
   implicit def writesResult = Json.writes[Result[Emp]]
 

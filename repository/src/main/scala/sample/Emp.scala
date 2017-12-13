@@ -7,7 +7,7 @@ case class Emp(
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @SequenceGenerator(sequence = "emp_id_seq")
-  id: ID[Emp],
+  id: ID[Emp] = ID(-1),
   name: Name,
   age: Age,
   sex: Sex,

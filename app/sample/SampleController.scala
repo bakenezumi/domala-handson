@@ -27,4 +27,17 @@ class SampleController @Inject()
     }
   }
 
+  private def toEmp(request: Request[AnyContent]) =
+    request.body.asJson.map(_.as[Emp])
+      .getOrElse(throw new RuntimeException("Request body colud not parse"))
+
+  def update(id: Int) = Action.async { request =>
+    Future { Required {
+      dao.update(toEmp(request).copy(id = ID(id)))
+    }} map { result =>
+      Ok(Json.toJson(result))
+    }
+  }
+
+
 }
