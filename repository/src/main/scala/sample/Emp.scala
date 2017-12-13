@@ -10,6 +10,7 @@ case class Emp(
   id: ID[Emp],
   name: Name,
   age: Age,
+  sex: Sex,
   @Version
   version: Int) {
   def growOld: Emp =
