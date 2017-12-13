@@ -26,7 +26,7 @@ trait EmpDao {
   create table emp(
       id int not null primary key,
       name varchar(20),
-      age int
+      age int,
       version int not null
   );
   create sequence emp_id_seq start with 1;
