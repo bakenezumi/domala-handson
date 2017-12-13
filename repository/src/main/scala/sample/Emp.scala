@@ -8,11 +8,10 @@ case class Emp(
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @SequenceGenerator(sequence = "emp_id_seq")
   id: ID[Emp],
-  name: String,
-  age: Int,
+  name: Name,
+  age: Age,
   @Version
   version: Int) {
-  def growOld: Emp = {
-    this.copy(age = this.age + 1)
-  }
+  def growOld: Emp =
+    this.copy(age = age.grow)
 }
