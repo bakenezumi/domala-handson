@@ -10,18 +10,18 @@ object EmpConverter {
   implicit def writesID[T] = Writes[ID[T]] { case ID(value) => JsNumber(value) }
   implicit def readsID[T] = Reads[ID[T]] { json => json.validate[Int] map (value => ID[T](value)) }
 
-  implicit def writesName[T] = Writes[Name] { case Name(value) => JsString(value) }
-  implicit def readsName[T] = Reads[Name] { json => json.validate[String] map (value => Name(value)) }
+  implicit def writesName = Writes[Name] { case Name(value) => JsString(value) }
+  implicit def readsName = Reads[Name] { json => json.validate[String] map (value => Name(value)) }
 
-  implicit def writesAge[T] = Writes[Age] { case Age(value) => JsNumber(value) }
-  implicit def readsAge[T] = Reads[Age] { json => json.validate[Int] map (value => Age(value)) }
+  implicit def writesAge = Writes[Age] { case Age(value) => JsNumber(value) }
+  implicit def readsAge = Reads[Age] { json => json.validate[Int] map (value => Age(value)) }
 
-  implicit def writesSex[T] = Writes[Sex] {
+  implicit def writesSex = Writes[Sex] {
     case Sex.Male => JsString("Male")
     case Sex.Female => JsString("Female")
     case Sex.Other => JsString("Other")
   }
-  implicit def readsSex[T] = Reads[Sex] { json => json.validate[String] map {
+  implicit def readsSex = Reads[Sex] { json => json.validate[String] map {
     case "Male" => Sex.Male
     case "Female" => Sex.Female
     case _ => Sex.Other
