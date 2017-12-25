@@ -9,7 +9,7 @@ object EmpConverter {
 
   implicit def idFormat[T] = Json.format[ID[T]]
 
-  implicit val nameFormat =  Json.format[Name]
+  implicit val nameFormat = Json.format[Name]
 
   implicit val ageFormat = Json.format[Age]
 
