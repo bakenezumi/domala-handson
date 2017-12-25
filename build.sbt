@@ -7,7 +7,7 @@ lazy val root = (project in file(".")).settings(
   name := "domala-handson",
   libraryDependencies ++= Seq(
     "com.h2database" % "h2" % "1.4.196",
-    "com.typesafe.play" %% "play" % "2.6.7"
+    "com.typesafe.play" %% "play" % "2.6.9"
     // , guice
     // , jdbc
     // , evolutions
@@ -21,7 +21,8 @@ lazy val repository = (project in file("repository")).settings(
   )),
   metaMacroSettings,
   libraryDependencies ++= Seq(
-    "com.github.domala" %% "domala" % "0.1.0-beta.7"
+    "org.scalameta" %% "scalameta" % "1.8.0" % Provided,
+    "com.github.domala" %% "domala" % "0.1.0-beta.8"
   )
 )
 
