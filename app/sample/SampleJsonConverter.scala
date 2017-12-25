@@ -7,19 +7,14 @@ import play.api.libs.functional.syntax._
 
 object EmpConverter {
 
-  implicit def writesID[T] = Json.writes[ID[T]]
-  implicit def readsID[T] = Json.reads[ID[T]]
+  implicit def idFormat[T] = Json.format[ID[T]]
 
-  implicit def writesName = Json.writes[Name]
-  implicit def readsName = Json.reads[Name]
+  implicit val nameFormat =  Json.format[Name]
 
-  implicit def writesAge = Json.writes[Age]
-  implicit def readsAge = Json.reads[Age]
+  implicit val ageFormat = Json.format[Age]
 
-  implicit def writesEmp = Json.writes[Emp]
-  implicit def readsEmp = Json.reads[Emp]
+  implicit val empFormat = Json.format[Emp]
 
-  implicit def writesResult = Json.writes[Result[Emp]]
+  implicit val writesResult = Json.writes[Result[Emp]]
 
 }
-
